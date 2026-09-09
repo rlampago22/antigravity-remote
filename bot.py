@@ -31,12 +31,21 @@ from config import (
 from antigravity_client import AntigravityClient
 from log_monitor import ConversationLogMonitor, BridgeEvent
 
+import socket
+import time
+
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# Configura logging tanto para console quanto para arquivo bridge.log
+log_file_path = Path(__file__).parent / "bridge.log"
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
+    level=logging.INFO,
+    handlers=[
+        logging.FileHandler(log_file_path, encoding="utf-8"),
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 logger = logging.getLogger("antigravity_bridge.bot")
 
@@ -352,22 +361,55 @@ class AntigravityTelegramBridge:
         except Exception as e:
             logger.error(f"Falha ao enviar mensagem para Telegram: {e}")
 
+    def _wait_for_internet(self, timeout_sec: int = 180) -> bool:
+        """Aguarda a conexão com a internet estar ativa (útil logo após o boot)."""
+        logger.info("Verificando conexão com a internet...")
+        start = time.time()
+        while time.time() - start < timeout_sec:
+            try:
+                # Testa conexão com DNS do Google ou Telegram
+                with socket.create_connection(("8.8.8.8", 53), timeout=3):
+                    logger.info("Conexão com a internet confirmada!")
+                    return True
+            except OSError:
+                time.sleep(3)
+        logger.warning("Tempo limite aguardando internet excedido, tentando continuar...")
+        return False
+
     def run(self):
         if not TELEGRAM_BOT_TOKEN:
-            print("TELEGRAM_BOT_TOKEN não configurado!")
+            logger.error("TELEGRAM_BOT_TOKEN não configurado no .env!")
             return
 
-        self.app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+        # Garante instância única via socket local (porta 52189)
+        lock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            lock_socket.bind(("127.0.0.1", 52189))
+            lock_socket.listen(1)
+        except OSError:
+            logger.warning("Outra instância do bot já está rodando. Encerrando esta.")
+            return
 
-        self.app.add_handler(CommandHandler("start", self.cmd_start))
-        self.app.add_handler(CommandHandler("help", self.cmd_start))
-        self.app.add_handler(CommandHandler("list", self.cmd_list))
-        self.app.add_handler(CommandHandler("run", self.cmd_run))
-        self.app.add_handler(CommandHandler("new", self.cmd_run))
-        self.app.add_handler(CallbackQueryHandler(self.handle_callback_query))
-        self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_text_message))
+        logger.info("=== ANTIGRAVITY TELEGRAM BRIDGE INICIADO ===")
+        self._wait_for_internet()
 
-        self.app.run_polling()
+        while True:
+            try:
+                self.app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+
+                self.app.add_handler(CommandHandler("start", self.cmd_start))
+                self.app.add_handler(CommandHandler("help", self.cmd_start))
+                self.app.add_handler(CommandHandler("list", self.cmd_list))
+                self.app.add_handler(CommandHandler("run", self.cmd_run))
+                self.app.add_handler(CommandHandler("new", self.cmd_run))
+                self.app.add_handler(CallbackQueryHandler(self.handle_callback_query))
+                self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_text_message))
+
+                logger.info("Iniciando polling do Telegram...")
+                self.app.run_polling(drop_pending_updates=False)
+            except Exception as e:
+                logger.error(f"Conexão com Telegram interrompida: {e}. Reconectando em 5s...")
+                time.sleep(5)
 
 if __name__ == "__main__":
     bridge = AntigravityTelegramBridge()

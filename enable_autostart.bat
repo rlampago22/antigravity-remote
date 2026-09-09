@@ -2,7 +2,7 @@
 title Ativar Inicializacao Automatica
 cd /d "%~dp0"
 
-echo Configurando para iniciar automaticamente com o Windows...
+echo Configurando inicializacao automatica com o Windows...
 
 powershell -NoProfile -Command ^
   "$ws = New-Object -ComObject WScript.Shell; " ^
@@ -12,12 +12,21 @@ powershell -NoProfile -Command ^
   "$s.WorkingDirectory = '%~dp0'; " ^
   "$s.Save();"
 
-if %errorlevel% equ 0 (
-    echo.
-    echo [SUCESSO] O Antigravity Remote agora iniciara automaticamente sempre que o notebook ligar!
-    echo Ele roda em segundo plano de forma invisivel.
-) else (
-    echo [ERRO] Nao foi possivel configurar o atalho de inicializacao.
-)
+echo Configurando atalho integrado do Antigravity na Area de Trabalho...
+powershell -NoProfile -Command ^
+  "$ws = New-Object -ComObject WScript.Shell; " ^
+  "$s = $ws.CreateShortcut(\"$env:USERPROFILE\Desktop\Antigravity.lnk\"); " ^
+  "$s.TargetPath = 'wscript.exe'; " ^
+  "$s.Arguments = '\"%~dp0launch_antigravity.vbs\"'; " ^
+  "$s.WorkingDirectory = '%~dp0'; " ^
+  "$s.IconLocation = 'C:\Users\Querol\AppData\Local\Programs\antigravity\Antigravity.exe,0'; " ^
+  "$s.Description = 'Google Antigravity (com Remote ativado)'; " ^
+  "$s.Save();"
+
+echo.
+echo [SUCESSO] Configuracao concluida!
+echo 1. O bot inicia automaticamente no boot do Windows.
+echo 2. O Guardiao vigia o Antigravity e garante que o bot nunca caia.
+echo 3. Ao clicar no Antigravity no Desktop, ambos abrem juntos.
 echo.
 pause
