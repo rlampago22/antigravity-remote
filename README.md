@@ -1,116 +1,143 @@
-# 🚀 Antigravity Remote (Telegram Companion)
+# 🚀 Antigravity Remote (Controle pelo Telegram)
 
 <p align="center">
-  <b>Control, inspect, and monitor Google Antigravity directly from your phone via Telegram.</b><br>
-  <i>Just like ChatGPT Remote, but built for Google Antigravity agents on your desktop.</i>
+  <b>Controle, inspecione e acompanhe o Google Antigravity diretamente pelo seu celular via Telegram.</b><br>
+  <i>Como o Remote do ChatGPT, mas construído para os agentes do Google Antigravity no seu computador.</i>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python 3.10+">
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License MIT">
-  <img src="https://img.shields.io/badge/Platform-Windows%20|%20macOS%20|%20Linux-lightgrey.svg" alt="Platforms">
+  <img src="https://img.shields.io/badge/Licen%C3%A7a-MIT-green.svg" alt="Licença MIT">
+  <img src="https://img.shields.io/badge/Plataforma-Windows%20|%20macOS%20|%20Linux-lightgrey.svg" alt="Plataformas">
   <img src="https://img.shields.io/badge/Telegram-Bot%20API-blue.svg" alt="Telegram Bot API">
 </p>
 
 ---
 
-## 🌟 Features
+## 🌟 O que você consegue fazer?
 
-- 📱 **Full Mobile Control:** Send instructions, prompt agents, and start new tasks from anywhere using your smartphone.
-- 🗂️ **Exact Chat Sync:** Lists your conversations with the exact official titles from your Antigravity sidebar (`annotations/*.pbtxt`).
-- 🤫 **Zero Background Spam:** Operates just like ChatGPT Remote — no message flooding from running background tasks unless you explicitly open that chat.
-- 📡 **On-Demand Live Logs:** Tap **"Acompanhar Logs ao Vivo"** inside any active task to watch terminal commands, file edits, and agent actions stream in real-time.
-- 💬 **Interactive Chat Switcher:** Easily switch between active sessions with single-tap inline buttons.
-- 🔒 **Ironclad Security:** Whitelists only your specific Telegram User ID. Unauthorized messages are instantly blocked.
-- 🚀 **1-Click Startup:** Bundled with `start_bridge.bat` (Windows) and `start_bridge.sh` (Linux/macOS).
+- 📱 **Controle total no celular:** Envie instruções, peça correções de código e acompanhe o trabalho de qualquer lugar pelo Telegram.
+- 🗂️ **Seus chats com os nomes reais:** Lista suas conversas com os mesmos títulos que aparecem na barra lateral do Antigravity.
+- 🤫 **Zero poluição de mensagens:** Funciona igual ao Remote do ChatGPT — tarefas que estiverem rodando em segundo plano não ficam inundando seu chat com mensagens se você não pedir.
+- 📡 **Logs ao vivo sob demanda:** Ao entrar em qualquer chat, toque em **"Acompanhar Logs ao Vivo"** para ver comandos de terminal, arquivos sendo criados/editados e o raciocínio do agente em tempo real.
+- 🔄 **Inicialização automática no Windows:** Liga sozinho em segundo plano quando o computador liga, sem abrir janelas de terminal na sua tela.
+- 🔒 **Segurança estrita:** Travado exclusivamente para o seu ID do Telegram. Qualquer outra pessoa que tentar mandar mensagem é bloqueada.
+- ⚡ **Rápido de iniciar:** Já vem com scripts de 1 clique (`start_bridge.bat` e `enable_autostart.bat`).
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Como Funciona a Arquitetura
 
 ```text
- [ Your Smartphone ]
-  (Telegram App)
+ [ Seu Smartphone ]
+  (Aplicativo do Telegram)
           ▲  │
-          │  │ 1. Send instruction / Click chat
+          │  │ 1. Você envia uma instrução / seleciona um chat
           │  ▼
-  [ Antigravity Bridge Service ] (Python daemon running on your PC)
+  [ Bridge Service ] (Roda no seu PC em segundo plano via Python)
           │  │
-          │  ├─► Dispatches to Antigravity CLI (`agentapi.bat` / `agentapi`)
+          │  ├─► Dispara as tarefas no Antigravity (`agentapi.bat` / `agentapi`)
           │  │
-          └◄─┴─ Tails `transcript.jsonl` on-demand
-               (Tool executions, terminal stdout, file edits & replies)
+          └◄─┴─ Lê o histórico (`transcript.jsonl`) sob demanda
+               (Execução de comandos, ferramentas, arquivos e respostas)
 ```
 
 ---
 
-## ⚡ Quickstart (2 Minutes)
+## ⚡ Como Começar (Passo a Passo em 3 Minutos)
 
-### 1. Create a Telegram Bot
-1. Open Telegram and search for **[@BotFather](https://t.me/BotFather)** (the official verified bot).
-2. Send `/newbot`.
-3. Choose a name (e.g. `My Antigravity`) and a unique username ending in `bot` (e.g. `my_antigravity_bot`).
-4. Copy the **HTTP API Token** provided by BotFather.
+### 1. Criar o Bot no Telegram
+1. No seu celular ou PC, abra o Telegram e busque por **[@BotFather](https://t.me/BotFather)** (o bot oficial com selo de verificação azul).
+2. Envie o comando:
+   ```
+   /newbot
+   ```
+3. Escolha um nome (ex: `Meu Antigravity`) e um username único terminando em `bot` (ex: `meu_antigravity_bot`).
+4. O BotFather fornecerá um **Token de Acesso HTTP** (ex: `123456789:AAH...`). Guarde esse token!
 
-### 2. Configure the Bridge
-Clone this repository and create your `.env` file:
+### 2. Baixar e Configurar o Projeto
+Abra o terminal no computador e clone este repositório:
 ```bash
 git clone https://github.com/rlampago22/antigravity-remote.git
 cd antigravity-remote
+```
+
+Crie o arquivo de configuração `.env` a partir do modelo:
+```powershell
+# No Windows:
+copy .env.example .env
+
+# No Linux ou macOS:
 cp .env.example .env
 ```
-*(On Windows PowerShell, use `copy .env.example .env`)*
 
-Edit `.env` with your token:
+Abra o arquivo `.env` e cole o seu token do bot:
 ```ini
-TELEGRAM_BOT_TOKEN=your_token_from_botfather_here
+TELEGRAM_BOT_TOKEN=seu_token_do_bot_aqui
 ALLOWED_USER_ID=
 LOG_MODE=compact
 DEFAULT_MODEL=flash
 ```
 
-### 3. Run
-- **Windows:** Double-click [`start_bridge.bat`](start_bridge.bat) or run:
+### 3. Executar
+
+- **No Windows:** Dê um duplo clique no arquivo [`start_bridge.bat`](start_bridge.bat) ou execute:
   ```powershell
   python bot.py
   ```
-- **macOS / Linux:**
+- **No Linux ou macOS:**
   ```bash
   chmod +x start_bridge.sh
   ./start_bridge.sh
   ```
 
-### 4. Connect on Mobile
-1. Open your bot on Telegram and send `/start`.
-2. The bot will automatically lock to your user ID and present your Antigravity chats!
+### 4. Abrir no Celular
+1. Abra a conversa com seu novo bot no Telegram e envie:
+   ```
+   /start
+   ```
+2. O bot se vinculará automaticamente ao seu usuário e exibirá o painel das suas conversas!
 
 ---
 
-## 📱 Telegram Commands
+## 🔄 Como Ativar a Inicialização Automática com o Windows
 
-| Command | Description |
+Para não precisar lembrar de abrir o bot toda vez que ligar o computador:
+- Dê um duplo clique em [`enable_autostart.bat`](enable_autostart.bat).
+- Pronto! O bot passará a iniciar sozinho e invisível em segundo plano sempre que o Windows ligar.
+- Para desativar quando quiser: dê um duplo clique em [`disable_autostart.bat`](disable_autostart.bat).
+
+---
+
+## 📱 Comandos no Telegram
+
+| Comando | O que faz |
 |---|---|
-| `/list` | Displays your active & past Antigravity chats with 1-tap buttons to open them. |
-| `/run <prompt>` | Spawns a brand-new conversation in Antigravity and starts working immediately. |
-| *(Any plain text)* | When a chat is open, simply type any text to send that prompt directly to the agent. |
-| `/help` | Shows instructions and guide. |
+| `/list` | Mostra todas as suas conversas do Antigravity com botões de 1 clique para abrir. |
+| `/run <sua tarefa>` | Cria uma nova conversa do zero no computador e começa a executar. |
+| *(Texto normal)* | Com um chat aberto, qualquer mensagem digitada é enviada direto para o agente no PC. |
+| `/help` | Exibe as instruções e resumo dos comandos. |
 
 ---
 
-## 🔒 Security
+## 🔒 Segurança
 
-- Your bot communicates strictly through Telegram's outgoing long-polling. **No open ports, no port forwarding, and no router configuration required.**
-- The `ALLOWED_USER_ID` ensures that **only you** can interact with or view data from your machine.
-
----
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-Feel free to check the [issues page](https://github.com/rlampago22/antigravity-remote/issues).
+- O bot se comunica exclusivamente pelas conexões de saída (*long-polling*) do Telegram. **Você não precisa abrir portas no roteador nem configurar IP público.**
+- O parâmetro `ALLOWED_USER_ID` garante que **apenas você** consiga interagir com seu computador. Mensagens de terceiros são rejeitadas.
 
 ---
 
-## 📄 License
+## 🤝 Como Contribuir
 
-This project is licensed under the [MIT License](LICENSE).
+Quer ajudar a melhorar o projeto?
+1. Faça um Fork do repositório.
+2. Crie uma branch para sua funcionalidade (`git checkout -b feature/nova-funcao`).
+3. Faça commit das alterações (`git commit -m 'Adiciona nova funcao'`).
+4. Envie para a sua branch (`git push origin feature/nova-funcao`).
+5. Abra um Pull Request!
+
+---
+
+## 📄 Licença
+
+Este projeto é disponibilizado sob a licença [MIT](LICENSE).
