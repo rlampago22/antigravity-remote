@@ -382,10 +382,10 @@ class AntigravityTelegramBridge:
             return
 
         # Garante instância única via socket local (porta 52189)
-        lock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.lock_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            lock_socket.bind(("127.0.0.1", 52189))
-            lock_socket.listen(1)
+            self.lock_socket.bind(("127.0.0.1", 52189))
+            self.lock_socket.listen(1)
         except OSError:
             logger.warning("Outra instância do bot já está rodando. Encerrando esta.")
             return

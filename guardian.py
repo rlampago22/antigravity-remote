@@ -1,14 +1,11 @@
 import os
-import socket
 import subprocess
 import sys
 import time
 from pathlib import Path
 
-# Garante que o diretório atual seja a pasta do script
 SCRIPT_DIR = Path(__file__).parent.resolve()
 os.chdir(SCRIPT_DIR)
-
 LOG_FILE = SCRIPT_DIR / "guardian.log"
 
 def log(msg: str):
@@ -21,52 +18,52 @@ def log(msg: str):
         pass
 
 def is_bot_running() -> bool:
-    """Verifica se o bot está rodando testando se a porta de trava local 52189 está ocupada."""
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    """Verifica se o bot.py está em execução usando wmic."""
     try:
-        s.settimeout(0.5)
-        result = s.connect_ex(("127.0.0.1", 52189))
-        s.close()
-        return result == 0
-    except Exception:
+        cmd = 'wmic process where "name like \'python%\'" get commandline'
+        out = subprocess.check_output(cmd, shell=True, text=True, errors="replace")
+        for line in out.splitlines():
+            line_clean = line.strip().lower()
+            if "bot.py" in line_clean and "guardian.py" not in line_clean:
+                return True
+        return False
+    except Exception as e:
+        log(f"Erro checando bot: {e}")
         return False
 
 def is_antigravity_running() -> bool:
-    """Verifica se o Antigravity.exe ou language_server está em execução."""
+    """Verifica se o Antigravity.exe está em execução."""
     try:
-        # tasklist rápido pelo Windows
-        output = subprocess.check_output(
-            'tasklist /FI "IMAGENAME eq Antigravity.exe" /NH',
-            shell=True,
-            text=True,
-            errors="replace"
-        )
-        return "Antigravity.exe" in output
-    except Exception:
+        cmd = 'wmic process where "name=\'Antigravity.exe\'" get processid'
+        out = subprocess.check_output(cmd, shell=True, text=True, errors="replace")
+        for line in out.splitlines():
+            if line.strip().isdigit():
+                return True
+        return False
+    except Exception as e:
+        log(f"Erro checando Antigravity: {e}")
         return False
 
+def get_pythonw() -> str:
+    exe = Path(sys.executable).with_name("pythonw.exe")
+    if exe.exists():
+        return str(exe)
+    return sys.executable
+
 def start_bot():
-    """Inicia o bot silenciosamente em segundo plano com pythonw."""
+    """Inicia o bot silenciosamente em segundo plano."""
     log("Disparando inicialização do Antigravity Remote Bot...")
+    pythonw_cmd = get_pythonw()
     try:
-        # Tenta pythonw primeiro para não abrir janela
-        cmd = ["pythonw", "bot.py"]
+        cmd = [pythonw_cmd, "bot.py"]
         subprocess.Popen(
             cmd,
             cwd=str(SCRIPT_DIR),
             creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
         )
-        log("Bot disparado com sucesso via pythonw.")
+        log(f"Bot disparado com sucesso via: {pythonw_cmd}")
     except Exception as e:
-        log(f"Falha ao iniciar pythonw, tentando python: {e}")
-        try:
-            subprocess.Popen(
-                ["python", "bot.py"],
-                cwd=str(SCRIPT_DIR),
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-            )
-        except Exception as e2:
-            log(f"Erro fatal iniciando bot: {e2}")
+        log(f"Erro fatal iniciando bot: {e}")
 
 def main():
     log("=== GUARDIÃO DO ANTIGRAVITY INICIADO ===")
@@ -79,7 +76,7 @@ def main():
             if antigravity_active and not bot_active:
                 log("Antigravity detectado ABERTO, mas o bot não está rodando. Ligando o bot agora...")
                 start_bot()
-                time.sleep(4)
+                time.sleep(5)
 
         except Exception as e:
             log(f"Erro no loop do guardião: {e}")
