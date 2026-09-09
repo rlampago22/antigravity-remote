@@ -19,14 +19,13 @@ powershell -NoProfile -Command ^
   "$s.TargetPath = 'wscript.exe'; " ^
   "$s.Arguments = '\"%~dp0launch_antigravity.vbs\"'; " ^
   "$s.WorkingDirectory = '%~dp0'; " ^
-  "$s.IconLocation = 'C:\Users\Querol\AppData\Local\Programs\antigravity\Antigravity.exe,0'; " ^
+  "$s.IconLocation = \"$env:LOCALAPPDATA\Programs\Antigravity\Antigravity.exe,0\"; " ^
   "$s.Description = 'Google Antigravity (com Remote ativado)'; " ^
   "$s.Save();"
 
 echo.
-echo [SUCESSO] Configuracao concluida!
-echo 1. O bot inicia automaticamente no boot do Windows.
-echo 2. O Guardiao vigia o Antigravity e garante que o bot nunca caia.
-echo 3. Ao clicar no Antigravity no Desktop, ambos abrem juntos.
+echo [SUCESSO] Configuracao concluida com sucesso!
+echo 1. O Guardiao inicia com o Windows e garante o bot sempre ativo.
+echo 2. O atalho do Desktop abre o Antigravity e o Bot juntos.
 echo.
 pause

@@ -20,9 +20,50 @@
 - 🗂️ **Seus chats com os nomes reais:** Lista suas conversas com os mesmos títulos que aparecem na barra lateral do Antigravity.
 - 🤫 **Zero poluição de mensagens:** Funciona igual ao Remote do ChatGPT — tarefas que estiverem rodando em segundo plano não ficam inundando seu chat com mensagens se você não pedir.
 - 📡 **Logs ao vivo sob demanda:** Ao entrar em qualquer chat, toque em **"Acompanhar Logs ao Vivo"** para ver comandos de terminal, arquivos sendo criados/editados e o raciocínio do agente em tempo real.
-- 🔄 **Inicialização automática no Windows:** Liga sozinho em segundo plano quando o computador liga, sem abrir janelas de terminal na sua tela.
+- 🛡️ **Guardião Inteligente:** Vigia se o Antigravity está aberto e liga o bot sozinho, além de manter o serviço sempre de pé.
+- 🔄 **Inicialização automática no Windows:** Liga sozinho em segundo plano quando o computador liga, sem abrir janelas pretas de terminal na tela.
 - 🔒 **Segurança estrita:** Travado exclusivamente para o seu ID do Telegram. Qualquer outra pessoa que tentar mandar mensagem é bloqueada.
-- ⚡ **Rápido de iniciar:** Já vem com scripts de 1 clique (`start_bridge.bat` e `enable_autostart.bat`).
+
+---
+
+## ⚡ Instalação Rápida em 1 Minuto (Para Qualquer Computador)
+
+Qualquer pessoa que use o **Google Antigravity** pode rodar este projeto em seu próprio computador seguindo estes passos simples:
+
+### Passo 1: Obter um Token no Telegram
+1. No celular ou PC, abra o Telegram e busque por **[@BotFather](https://t.me/BotFather)** (bot oficial com selo azul).
+2. Envie o comando `/newbot`.
+3. Escolha um nome (ex: `Meu Antigravity`) e um username único terminado em `bot` (ex: `meu_antigravity_bot`).
+4. O BotFather fornecerá um **Token de Acesso HTTP**. Guarde esse token!
+
+### Passo 2: Baixar o Repositório
+No computador:
+```bash
+git clone https://github.com/rlampago22/antigravity-remote.git
+cd antigravity-remote
+```
+*(Ou baixe o arquivo ZIP pelo botão verde **Code -> Download ZIP** no GitHub e extraia numa pasta de sua preferência).*
+
+### Passo 3: Executar o Instalador Automático
+- **No Windows:**
+  Dê um duplo clique no arquivo [`instalar.bat`](instalar.bat).
+  - Ele verificará o Python.
+  - Instalará as dependências automaticamente.
+  - Abrirá o bloco de notas para você colar o seu token do `@BotFather`.
+  - Criará o atalho integrado na Área de Trabalho e a inicialização automática!
+
+- **No Linux ou macOS:**
+  ```bash
+  chmod +x start_bridge.sh
+  ./start_bridge.sh
+  ```
+
+### Passo 4: Conectar no Celular
+Abra o seu bot no Telegram e envie:
+```
+/start
+```
+Pronto! O bot já se vinculará à sua conta e listará todas as conversas do seu Antigravity.
 
 ---
 
@@ -34,78 +75,13 @@
           ▲  │
           │  │ 1. Você envia uma instrução / seleciona um chat
           │  ▼
-  [ Bridge Service ] (Roda no seu PC em segundo plano via Python)
+  [ Bridge Service + Guardião ] (Roda no seu PC em segundo plano via Python)
           │  │
           │  ├─► Dispara as tarefas no Antigravity (`agentapi.bat` / `agentapi`)
           │  │
           └◄─┴─ Lê o histórico (`transcript.jsonl`) sob demanda
                (Execução de comandos, ferramentas, arquivos e respostas)
 ```
-
----
-
-## ⚡ Como Começar (Passo a Passo em 3 Minutos)
-
-### 1. Criar o Bot no Telegram
-1. No seu celular ou PC, abra o Telegram e busque por **[@BotFather](https://t.me/BotFather)** (o bot oficial com selo de verificação azul).
-2. Envie o comando:
-   ```
-   /newbot
-   ```
-3. Escolha um nome (ex: `Meu Antigravity`) e um username único terminando em `bot` (ex: `meu_antigravity_bot`).
-4. O BotFather fornecerá um **Token de Acesso HTTP** (ex: `123456789:AAH...`). Guarde esse token!
-
-### 2. Baixar e Configurar o Projeto
-Abra o terminal no computador e clone este repositório:
-```bash
-git clone https://github.com/rlampago22/antigravity-remote.git
-cd antigravity-remote
-```
-
-Crie o arquivo de configuração `.env` a partir do modelo:
-```powershell
-# No Windows:
-copy .env.example .env
-
-# No Linux ou macOS:
-cp .env.example .env
-```
-
-Abra o arquivo `.env` e cole o seu token do bot:
-```ini
-TELEGRAM_BOT_TOKEN=seu_token_do_bot_aqui
-ALLOWED_USER_ID=
-LOG_MODE=compact
-DEFAULT_MODEL=flash
-```
-
-### 3. Executar
-
-- **No Windows:** Dê um duplo clique no arquivo [`start_bridge.bat`](start_bridge.bat) ou execute:
-  ```powershell
-  python bot.py
-  ```
-- **No Linux ou macOS:**
-  ```bash
-  chmod +x start_bridge.sh
-  ./start_bridge.sh
-  ```
-
-### 4. Abrir no Celular
-1. Abra a conversa com seu novo bot no Telegram e envie:
-   ```
-   /start
-   ```
-2. O bot se vinculará automaticamente ao seu usuário e exibirá o painel das suas conversas!
-
----
-
-## 🔄 Como Ativar a Inicialização Automática com o Windows
-
-Para não precisar lembrar de abrir o bot toda vez que ligar o computador:
-- Dê um duplo clique em [`enable_autostart.bat`](enable_autostart.bat).
-- Pronto! O bot passará a iniciar sozinho e invisível em segundo plano sempre que o Windows ligar.
-- Para desativar quando quiser: dê um duplo clique em [`disable_autostart.bat`](disable_autostart.bat).
 
 ---
 
