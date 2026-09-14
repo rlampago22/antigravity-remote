@@ -19,11 +19,13 @@ def log(msg: str):
         pass
 
 def is_bot_running() -> bool:
-    """Verifica se o bot.py está em execução testando o socket de controle (porta 52189)."""
+    """Verifica se o bot.py está em execução testando se a porta de trava (52189) está ocupada."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.5)
-            return s.connect_ex(("127.0.0.1", 52189)) == 0
+            s.bind(("127.0.0.1", 52189))
+            return False  # Porta livre = bot não está rodando
+    except OSError:
+        return True  # Porta ocupada = bot está rodando
     except Exception:
         return False
 
