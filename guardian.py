@@ -1,4 +1,5 @@
 import os
+import socket
 import subprocess
 import sys
 import time
@@ -18,28 +19,24 @@ def log(msg: str):
         pass
 
 def is_bot_running() -> bool:
-    """Verifica se o bot.py está em execução usando wmic."""
+    """Verifica se o bot.py está em execução testando o socket de controle (porta 52189)."""
     try:
-        cmd = 'wmic process where "name like \'python%\'" get commandline'
-        out = subprocess.check_output(cmd, shell=True, text=True, errors="replace")
-        for line in out.splitlines():
-            line_clean = line.strip().lower()
-            if "bot.py" in line_clean and "guardian.py" not in line_clean:
-                return True
-        return False
-    except Exception as e:
-        log(f"Erro checando bot: {e}")
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            return s.connect_ex(("127.0.0.1", 52189)) == 0
+    except Exception:
         return False
 
 def is_antigravity_running() -> bool:
-    """Verifica se o Antigravity.exe está em execução."""
+    """Verifica se o Antigravity.exe está em execução via tasklist nativo."""
     try:
-        cmd = 'wmic process where "name=\'Antigravity.exe\'" get processid'
-        out = subprocess.check_output(cmd, shell=True, text=True, errors="replace")
-        for line in out.splitlines():
-            if line.strip().isdigit():
-                return True
-        return False
+        res = subprocess.run(
+            ["tasklist", "/FI", "IMAGENAME eq Antigravity.exe", "/NH"],
+            capture_output=True,
+            text=True,
+            errors="replace"
+        )
+        return "antigravity.exe" in res.stdout.lower()
     except Exception as e:
         log(f"Erro checando Antigravity: {e}")
         return False
@@ -59,6 +56,9 @@ def start_bot():
         subprocess.Popen(
             cmd,
             cwd=str(SCRIPT_DIR),
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
         )
         log(f"Bot disparado com sucesso via: {pythonw_cmd}")
@@ -67,16 +67,31 @@ def start_bot():
 
 def main():
     log("=== GUARDIÃO DO ANTIGRAVITY INICIADO ===")
-    
+    last_antigravity_state = None
+    last_bot_state = None
+
     while True:
         try:
             antigravity_active = is_antigravity_running()
             bot_active = is_bot_running()
 
+            if antigravity_active != last_antigravity_state:
+                status_str = "ABERTO" if antigravity_active else "FECHADO"
+                log(f"Estado do Antigravity alterado: {status_str}")
+                last_antigravity_state = antigravity_active
+
+            if bot_active != last_bot_state:
+                status_str = "RODANDO" if bot_active else "PARADO"
+                log(f"Estado do Bot alterado: {status_str}")
+                last_bot_state = bot_active
+
             if antigravity_active and not bot_active:
                 log("Antigravity detectado ABERTO, mas o bot não está rodando. Ligando o bot agora...")
                 start_bot()
-                time.sleep(5)
+                time.sleep(3)
+                if is_bot_running():
+                    last_bot_state = True
+                    log("Bot confirmado rodando e escutando na porta 52189!")
 
         except Exception as e:
             log(f"Erro no loop do guardião: {e}")

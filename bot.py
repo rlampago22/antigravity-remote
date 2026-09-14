@@ -34,18 +34,22 @@ from log_monitor import ConversationLogMonitor, BridgeEvent
 import socket
 import time
 
-if sys.platform == "win32":
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if sys.stdout is not None and sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
-# Configura logging tanto para console quanto para arquivo bridge.log
+# Configura logging tanto para arquivo bridge.log quanto para console (se disponivel)
 log_file_path = Path(__file__).parent / "bridge.log"
+log_handlers = [logging.FileHandler(log_file_path, encoding="utf-8")]
+if sys.stdout is not None:
+    log_handlers.append(logging.StreamHandler(sys.stdout))
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
-    handlers=[
-        logging.FileHandler(log_file_path, encoding="utf-8"),
-        logging.StreamHandler(sys.stdout)
-    ]
+    handlers=log_handlers
 )
 logger = logging.getLogger("antigravity_bridge.bot")
 
