@@ -29,18 +29,57 @@ def is_bot_running() -> bool:
     except Exception:
         return False
 
+if sys.platform == "win32":
+    import ctypes
+    from ctypes import wintypes
+
+    class PROCESSENTRY32(ctypes.Structure):
+        _fields_ = [
+            ('dwSize', wintypes.DWORD),
+            ('cntUsage', wintypes.DWORD),
+            ('th32ProcessID', wintypes.DWORD),
+            ('th32DefaultHeapID', ctypes.c_size_t),
+            ('th32ModuleID', wintypes.DWORD),
+            ('cntThreads', wintypes.DWORD),
+            ('th32ParentProcessID', wintypes.DWORD),
+            ('pcPriClassBase', wintypes.LONG),
+            ('dwFlags', wintypes.DWORD),
+            ('szExeFile', ctypes.c_char * 260)
+        ]
+
 def is_antigravity_running() -> bool:
-    """Verifica se o Antigravity.exe está em execução via tasklist nativo."""
+    """Verifica se o Antigravity.exe está em execução usando API nativa do Windows (100% invisível, sem abrir cmd)."""
+    if sys.platform == "win32":
+        try:
+            TH32CS_SNAPPROCESS = 0x00000002
+            hSnapshot = ctypes.windll.kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
+            if hSnapshot and hSnapshot != -1:
+                entry = PROCESSENTRY32()
+                entry.dwSize = ctypes.sizeof(PROCESSENTRY32)
+                success = ctypes.windll.kernel32.Process32First(hSnapshot, ctypes.byref(entry))
+                target = b"antigravity.exe"
+                while success:
+                    if entry.szExeFile.lower() == target:
+                        ctypes.windll.kernel32.CloseHandle(hSnapshot)
+                        return True
+                    success = ctypes.windll.kernel32.Process32Next(hSnapshot, ctypes.byref(entry))
+                ctypes.windll.kernel32.CloseHandle(hSnapshot)
+                return False
+        except Exception as e:
+            log(f"Erro checando Antigravity via Win32: {e}")
+
+    # Fallback seguro com CREATE_NO_WINDOW absoluto
     try:
         res = subprocess.run(
             ["tasklist", "/FI", "IMAGENAME eq Antigravity.exe", "/NH"],
             capture_output=True,
             text=True,
-            errors="replace"
+            errors="replace",
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
         )
         return "antigravity.exe" in res.stdout.lower()
     except Exception as e:
-        log(f"Erro checando Antigravity: {e}")
+        log(f"Erro checando Antigravity via fallback: {e}")
         return False
 
 def get_pythonw() -> str:
