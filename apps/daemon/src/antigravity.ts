@@ -233,7 +233,11 @@ export class AntigravityLocalAdapter {
 
   markSynced(items: ConversationSyncItem[]): void {
     for (const item of items) {
-      if (item.lastStepIndex >= 0) {
+      if (item.events.length > 0) {
+        const maxEventStep = Math.max(...item.events.map((e) => e.stepIndex));
+        const prev = this.lastSyncedStep.get(item.externalId) ?? -1;
+        this.lastSyncedStep.set(item.externalId, Math.max(prev, maxEventStep));
+      } else if (item.lastStepIndex >= 0 && !this.lastSyncedStep.has(item.externalId)) {
         this.lastSyncedStep.set(item.externalId, item.lastStepIndex);
       }
     }

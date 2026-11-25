@@ -185,6 +185,67 @@ async function executeCommand(
   }
 }
 
+async function syncSnapshotInChunks(
+  client: RemoteRelayClient,
+  adapter: AntigravityLocalAdapter,
+  snapshot: Awaited<ReturnType<AntigravityLocalAdapter['collectSyncSnapshot']>>
+): Promise<void> {
+  const MAX_CHUNK_BYTES = 450_000;
+  const MAX_EVENTS_PER_CHUNK = 25;
+
+  const metaOnlyBatch: typeof snapshot = [];
+  let metaBatchBytes = 0;
+
+  const flushMetaBatch = async () => {
+    if (metaOnlyBatch.length === 0) return;
+    await client.syncConversations({ conversations: metaOnlyBatch });
+    adapter.markSynced(metaOnlyBatch);
+    metaOnlyBatch.length = 0;
+    metaBatchBytes = 0;
+  };
+
+  for (const item of snapshot) {
+    if (item.events.length === 0) {
+      const size = Buffer.byteLength(JSON.stringify(item), 'utf8');
+      if (metaOnlyBatch.length >= 10 || metaBatchBytes + size > MAX_CHUNK_BYTES) {
+        await flushMetaBatch();
+      }
+      metaOnlyBatch.push(item);
+      metaBatchBytes += size;
+      continue;
+    }
+
+    await flushMetaBatch();
+
+    // Send events in bounded chunks to stay well under Vercel's 4.5MB payload limit
+    let cursor = 0;
+    while (cursor < item.events.length) {
+      const chunkEvents: typeof item.events = [];
+      let chunkBytes = 2000;
+      while (cursor < item.events.length && chunkEvents.length < MAX_EVENTS_PER_CHUNK) {
+        const ev = item.events[cursor];
+        const evBytes = Buffer.byteLength(JSON.stringify(ev), 'utf8');
+        if (chunkEvents.length > 0 && chunkBytes + evBytes > MAX_CHUNK_BYTES) {
+          break;
+        }
+        chunkEvents.push(ev);
+        chunkBytes += evBytes;
+        cursor++;
+      }
+
+      const partialItem = {
+        ...item,
+        lastStepIndex: Math.max(...chunkEvents.map((e) => e.stepIndex)),
+        events: chunkEvents,
+      };
+      await client.syncConversations({ conversations: [partialItem] });
+      adapter.markSynced([partialItem]);
+    }
+  }
+
+  await flushMetaBatch();
+}
+
 async function main() {
   const args = new Set(process.argv.slice(2));
   const serverArg = process.argv.find((a) => a.startsWith('--server='));
@@ -246,12 +307,11 @@ async function main() {
         }
       }
 
-      // 3. Incremental conversation sync
+      // 3. Incremental conversation sync (chunked to stay well under 4.5MB Vercel limit)
       if (now - lastSync >= config.syncIntervalMs) {
         const snapshot = await adapter.collectSyncSnapshot(config.maxConversations, firstSync);
         if (snapshot.length > 0) {
-          await client.syncConversations({ conversations: snapshot });
-          adapter.markSynced(snapshot);
+          await syncSnapshotInChunks(client, adapter, snapshot);
         }
         firstSync = false;
         lastSync = Date.now();
