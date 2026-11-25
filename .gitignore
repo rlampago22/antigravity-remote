@@ -1,43 +1,33 @@
-# Environment & Secrets (NEVER COMMIT)
-.env
-*.env.local
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
+# Builds
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+.next/
+out/
+build/
+*.tsbuildinfo
 
-# Virtual Environments
-venv/
-ENV/
-env.bak/
-venv.bak/
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+apps/web/.env
+apps/web/.env.local
+apps/daemon/.env
+apps/daemon/.env.local
+.remote-uploads/
+daemon-config.json
 
-# Project specific
-custom_titles.json
+# Vercel
+.vercel
+
+# Logs & OS
 *.log
-test_*.py
+npm-debug.log*
+.DS_Store
+Thumbs.db
 
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
+.env*

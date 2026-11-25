@@ -1,0 +1,24 @@
+{
+  "name": "antigravity-remote",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Controle remoto web/PWA para Google Antigravity (Next.js + Neon Postgres + Better Auth + Daemon local)",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace=@antigravity-remote/web run dev",
+    "dev:daemon": "npm --workspace=@antigravity-remote/daemon run dev",
+    "build": "npm --workspace=@antigravity-remote/protocol run build && npm --workspace=@antigravity-remote/daemon run build && npm --workspace=@antigravity-remote/web run build",
+    "build:web": "npm --workspace=@antigravity-remote/protocol run build && npm --workspace=@antigravity-remote/web run build",
+    "build:daemon": "npm --workspace=@antigravity-remote/protocol run build && npm --workspace=@antigravity-remote/daemon run build",
+    "typecheck": "npm --workspace=@antigravity-remote/protocol run typecheck && npm --workspace=@antigravity-remote/daemon run typecheck && npm --workspace=@antigravity-remote/web run typecheck",
+    "db:push": "npm --workspace=@antigravity-remote/web run db:push",
+    "daemon:pair": "npm --workspace=@antigravity-remote/daemon run pair",
+    "daemon:start": "npm --workspace=@antigravity-remote/daemon run start"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

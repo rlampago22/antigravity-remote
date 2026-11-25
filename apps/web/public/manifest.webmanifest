@@ -1,0 +1,18 @@
+{
+  "name": "Antigravity Remote",
+  "short_name": "Antigravity",
+  "description": "Controle remoto mobile-first para agentes do Google Antigravity",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090b10",
+  "theme_color": "#090b10",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
